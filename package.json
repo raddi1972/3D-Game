@@ -1,0 +1,17 @@
+{
+  "name": "assignment2",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "build": "tsc && browserify js/app.js -o dist/bundle.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "browserify": "^17.0.0",
+    "gl-matrix": "^3.4.3",
+    "ts-node": "^10.9.1",
+    "typescript": "^5.0.2"
+  }
+}
