@@ -13,19 +13,19 @@
     
         // an attribute will receive data from a buffer
         attribute vec3 a_position;
-        attribute vec2 a_tex_coordinates;
+        // attribute vec2 a_tex_coordinates;
         uniform mat4 model;    
         uniform mat4 view;    
         uniform mat4 projection;    
         // all shaders have a main function
 
-        varying highp vec2 vTextureCoord;
+        // varying highp vec2 vTextureCoord;
         void main() {
         
         // gl_Position is a special variable a vertex shader
         // is responsible for setting
         gl_Position = projection * view * model * vec4(a_position, 1.0);
-        vTextureCoord = a_tex_coordinates;
+        // vTextureCoord = a_tex_coordinates;
         }
         
     </script>
@@ -36,13 +36,14 @@
         // to pick one. mediump is a good default
         precision mediump float;
 
-        varying highp vec2 vTextureCoord;
-        uniform sampler2D uSampler;
+        // varying highp vec2 vTextureCoord;
+        // uniform sampler2D uSampler;
         
         void main() {
         // gl_FragColor is a special variable a fragment shader
         // is responsible for setting
-        gl_FragColor = texture2D(uSampler, vTextureCoord);
+        // gl_FragColor = texture2D(uSampler, vTextureCoord);
+        gl_FragColor = vec4(0.5, 0.5, 0.5, 1);
         }
         
     </script>

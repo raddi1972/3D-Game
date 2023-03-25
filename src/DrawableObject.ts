@@ -120,7 +120,7 @@ export abstract class Drawable2DObject {
         var modelUniform = gl.getUniformLocation(this.shader, 'model')
         var viewUniform = gl.getUniformLocation(this.shader, 'view')
         var projectionUniform = gl.getUniformLocation(this.shader, 'projection')
-        // mat4.rotateX(this.model, this.model, toRadians(1))
+        mat4.rotateX(this.model, this.model, toRadians(1))
         gl.useProgram(this.shader);
         gl.uniformMatrix4fv(modelUniform, false, this.model)
         gl.uniformMatrix4fv(viewUniform, false, this.view)

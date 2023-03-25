@@ -1,5 +1,6 @@
 import { Square } from "./Triangle";
 import { createShader, createProgram } from "./Shader";
+import { Model } from "./Model";
 export var canvas = <HTMLCanvasElement>document.querySelector("#c"); // Get the canvas
 
 function resizeCanvasToDisplaySize(canvas: HTMLCanvasElement) {
@@ -32,7 +33,7 @@ function getProgram(gl: WebGL2RenderingContext) {
 
 }
 
-function main() {
+async function main() {
     var gl = canvas.getContext("webgl2"); // get the glContext from the canvas
 
     if (!gl) {
@@ -42,12 +43,22 @@ function main() {
     resizeCanvasToDisplaySize(gl.canvas as HTMLCanvasElement);
     gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
 
-
+    // model loading -> first reading the model from the static folder
+    // to allow the models to be loaded the directory needs to be hosted on the 
+    // local server using the live-server or any other method
+    var model1 = new Model(gl, 'static/models/cube.obj');
+    var isLoaded = model1.loadData(gl);
 
     var shader = getProgram(gl);
     var triangle = new Square(gl, shader)
     function draw() {
-        triangle.draw(gl!);
+        if(!isLoaded) {
+            isLoaded = model1.loadData(gl!);
+        } else {
+            model1.draw(gl!, shader);
+        }
+
+        // triangle.draw(gl!);
         window.requestAnimationFrame(draw);
     }
 
@@ -55,4 +66,4 @@ function main() {
 
 }
 
-main();
+main()
