@@ -1,5 +1,6 @@
 import { Square } from "./Triangle";
 import { createShader, createProgram } from "./Shader";
+import * as objLoader from "webgl-obj-loader";
 export var canvas = <HTMLCanvasElement>document.querySelector("#c"); // Get the canvas
 
 function resizeCanvasToDisplaySize(canvas: HTMLCanvasElement) {
@@ -32,7 +33,7 @@ function getProgram(gl: WebGL2RenderingContext) {
 
 }
 
-function main() {
+async function main() {
     var gl = canvas.getContext("webgl2"); // get the glContext from the canvas
 
     if (!gl) {
@@ -45,6 +46,13 @@ function main() {
 
 
     var shader = getProgram(gl);
+
+    // Loading the .obj file
+    const response = await fetch('models/cube.obj');
+    const text = await response.text();
+    const meshData = new objLoader.Mesh(text);
+    console.log(meshData.vertices);
+
     var triangle = new Square(gl, shader)
     function draw() {
         triangle.draw(gl!);
