@@ -39,6 +39,8 @@ function loadTexture(gl: WebGL2RenderingContext, url: string) {
 
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, 1, 1, 0, gl.RGB, gl.UNSIGNED_BYTE, new Uint8Array([0, 0, 255, 255]));
     const image = new Image();
+    image.crossOrigin = "anonymous"
+    image.src = url;
     image.onload = ()=>{ // So after the image has been loaded
         gl.bindTexture(gl.TEXTURE_2D, texture);
         gl.texImage2D(
@@ -54,7 +56,6 @@ function loadTexture(gl: WebGL2RenderingContext, url: string) {
         
     }
     // Adding the image url
-    image.src = url;
     return texture;
 }
 
@@ -107,8 +108,7 @@ export abstract class Drawable2DObject {
         gl.vertexAttribPointer(
             1, 2, gl.FLOAT, false, 5 * 4, 3 * 4
         )
-
-        this.texture = loadTexture(gl, "./static/awesomeface.png")!;
+        this.texture = loadTexture(gl, "https://i.postimg.cc/RVGWYtXg/awesomeface.png")!;
         gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
 
         gl.bindVertexArray(null);

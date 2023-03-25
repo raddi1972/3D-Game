@@ -46,11 +46,11 @@ async function main() {
     // model loading -> first reading the model from the static folder
     // to allow the models to be loaded the directory needs to be hosted on the 
     // local server using the live-server or any other method
+    
+    var shader = getProgram(gl);
     var model1 = new Model(gl, 'static/models/cube.obj');
     var isLoaded = model1.loadData(gl);
-
-    var shader = getProgram(gl);
-    var triangle = new Square(gl, shader)
+    
     function draw() {
         if(!isLoaded) {
             isLoaded = model1.loadData(gl!);
