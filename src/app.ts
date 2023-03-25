@@ -1,4 +1,4 @@
-import { Triangle } from "./Triangle";
+import { Square } from "./Triangle";
 import { createShader, createProgram } from "./Shader";
 export var canvas = <HTMLCanvasElement>document.querySelector("#c"); // Get the canvas
 
@@ -42,10 +42,10 @@ function main() {
     resizeCanvasToDisplaySize(gl.canvas as HTMLCanvasElement);
     gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
 
-    // Need to implement the shaders
+
 
     var shader = getProgram(gl);
-    var triangle = new Triangle(gl, shader)
+    var triangle = new Square(gl, shader)
     function draw() {
         triangle.draw(gl!);
         window.requestAnimationFrame(draw);
