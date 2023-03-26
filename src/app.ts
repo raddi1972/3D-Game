@@ -1,7 +1,9 @@
-import { Square } from "./Triangle";
 import { Plane } from "./Plane";
 import { createShader, createProgram } from "./Shader";
 import { Model } from "./Model";
+import { Camera } from "./Camera";
+import { mat4, vec3 } from "gl-matrix";
+import { toRadians } from "./Drawable";
 export var canvas = <HTMLCanvasElement>document.querySelector("#c"); // Get the canvas
 
 function resizeCanvasToDisplaySize(canvas: HTMLCanvasElement) {
@@ -52,7 +54,10 @@ async function main() {
     var model1 = new Model(gl, 'static/models/cube.obj');
     var isLoaded = model1.loadData(gl);
 
-    var plane1 = new Plane(gl, shader, 5);
+    var plane1 = new Plane(gl, 5);
+    var perspective = mat4.create()
+    mat4.perspective(perspective, toRadians(45.0), gl.canvas.width / gl.canvas.height, 0.1, 100.0)
+    var camera = new Camera(vec3.create(), vec3.create(), perspective);
     
     function draw() {
         if(!isLoaded) {
@@ -60,7 +65,7 @@ async function main() {
         } else {
             // model1.draw(gl!, shader);
         }
-        plane1.draw(gl!);
+        plane1.draw(gl!, shader, camera);
         window.requestAnimationFrame(draw);
     }
 

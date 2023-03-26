@@ -1,7 +1,8 @@
 import { mat3, mat4, vec2, vec3 } from "gl-matrix";
-import { Drawable2DObject } from "./DrawableObject";
+import { Camera } from "./Camera";
+import { Drawable } from "./Drawable";
 
-export class Plane extends Drawable2DObject {
+export class Plane extends Drawable {
 
     static makePlane(n: number){
         var points: number[] = [];
@@ -12,7 +13,7 @@ export class Plane extends Drawable2DObject {
         var temp = initial_point;
 
         // populating the points array
-        points.push(0.0, 0.5, -1.0, 1.0, 1.0);
+        points.push(0.0, 0.5, -0.0);
         for(let i=1;i<n;i++)
         {
             var x = Math.cos(angle)*temp[0] - Math.sin(angle)*temp[1];
@@ -23,7 +24,7 @@ export class Plane extends Drawable2DObject {
             if(Math.abs(y)<1e-5){
                 y=0;
             }
-            points.push(x, y, -1.0, 1.0, 1.0);
+            points.push(x, y, 0.0);
             temp = [x, y];            
         }
 
@@ -38,10 +39,34 @@ export class Plane extends Drawable2DObject {
 
     constructor(
         gl: WebGL2RenderingContext,
-        shader: WebGLProgram,
         n: number,
     ) {
         var data = Plane.makePlane(n);
-        super(gl, data.points, data.indices, shader);
+        super(gl);
+
+        // Binding the Vertex Array. A vertex array stores the information about
+        // the indices and vertex data together. It also stores the configuration
+        // of the vertex attributes together.
+        // So in the draw call we can just bind the VAO and all the data is bounded
+        // automatically.
+        
+        // Vertex data setup
+
+        this.addVertexData(gl, data.points.flat());
+        this.addIndexData(gl, data.indices.flat());
+        this.addAttribute(gl, 3, gl.FLOAT);
+    }
+
+    draw(gl: WebGL2RenderingContext, shader: WebGLShader, camera: Camera): void {
+        var modelUniform = gl.getUniformLocation(shader, 'model')
+        var viewUniform = gl.getUniformLocation(shader, 'view')
+        var projectionUniform = gl.getUniformLocation(shader, 'projection')
+        gl.bindVertexArray(this.VAO);
+        gl.useProgram(shader);
+        gl.uniformMatrix4fv(modelUniform, false, this.model)
+        gl.uniformMatrix4fv(viewUniform, false, camera.getView())
+        gl.uniformMatrix4fv(projectionUniform, false, camera.projection)
+
+        gl.drawElements(gl.TRIANGLES, this.drawSize, gl.UNSIGNED_SHORT, 0);
     }
 }

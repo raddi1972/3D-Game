@@ -1,8 +1,15 @@
 import { mat4, vec3 } from "gl-matrix";
-import { canvas } from "./app";
+import { Camera } from "./Camera";
 
-function toRadians(angle: number) {
+export function toRadians(angle: number) {
     return (angle * Math.PI) / 180
+}
+
+function getTypeSize(type: number) {
+    if(type = WebGL2RenderingContext.FLOAT) {
+        return 4
+    }
+    return 4
 }
 
 function setTextureParameters(gl: WebGL2RenderingContext) {
@@ -63,7 +70,11 @@ export abstract class Drawable {
     VAO: WebGLVertexArrayObject | null
     VBO: WebGLBuffer | null
     EBO: WebGLBuffer | null
+    drawSize = 0
     model: mat4
+    attribValue: number = 0
+    stride: number = 0
+    offset: number = 0
     
     constructor(gl: WebGL2RenderingContext) {
         // These 3 properties are common across everywhere thus we instantiate in the super class
@@ -77,7 +88,39 @@ export abstract class Drawable {
         this.model = mat4.create();
     }
 
-    abstract draw(gl: WebGL2RenderingContext, shader: WebGLShader): void
+    abstract draw(gl: WebGL2RenderingContext, shader: WebGLShader, camera: Camera): void
+
+    protected addVertexData(gl: WebGL2RenderingContext, vertexData :number[]) {
+        gl.bindVertexArray(this.VAO);
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.VBO);
+        gl.bufferData(
+            gl.ARRAY_BUFFER,
+            new Float32Array(vertexData),
+            gl.STATIC_DRAW
+        )
+    }
+
+    protected addIndexData(gl: WebGL2RenderingContext, indexData: number[])
+    {
+        gl.bindVertexArray(this.VAO);
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.EBO);
+        gl.bufferData(
+            gl.ELEMENT_ARRAY_BUFFER,
+            new Uint16Array(indexData),
+            gl.STATIC_DRAW
+        );
+        this.drawSize = indexData.length;
+    }
+
+
+    protected addAttribute(gl: WebGL2RenderingContext, size: number, type: number) {
+        gl.bindVertexArray(this.VAO);
+        this.stride += getTypeSize(type) * size
+        gl.vertexAttribPointer(this.attribValue, size, gl.FLOAT, false, this.stride, this.offset);
+        gl.enableVertexAttribArray(this.attribValue);
+        this.attribValue++;
+        this.offset = this.stride;
+    }
 
     // constructor(gl: WebGL2RenderingContext, points: number[], indices: [number, number, number][], shader: WebGLProgram) {
     //     this.vao = gl.createVertexArray();
