@@ -1,4 +1,4 @@
-import { Square } from "./Triangle";
+import { Stage } from "./Stage";
 import { createShader, createProgram } from "./Shader";
 import { Model } from "./Model";
 export var canvas = <HTMLCanvasElement>document.querySelector("#c"); // Get the canvas
