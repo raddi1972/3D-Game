@@ -13,7 +13,7 @@ export class Stage extends Drawable {
     }
 
     createData(n: number, m: number) {
-
+        const deltaAngle = 360/n
     }
 
     addChildren(child: Drawable) {

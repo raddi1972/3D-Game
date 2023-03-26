@@ -1,4 +1,5 @@
-import { Stage } from "./Stage";
+import { Square } from "./Triangle";
+import { Plane } from "./Plane";
 import { createShader, createProgram } from "./Shader";
 import { Model } from "./Model";
 export var canvas = <HTMLCanvasElement>document.querySelector("#c"); // Get the canvas
@@ -50,15 +51,16 @@ async function main() {
     var shader = getProgram(gl);
     var model1 = new Model(gl, 'static/models/cube.obj');
     var isLoaded = model1.loadData(gl);
+
+    var plane1 = new Plane(gl, shader, 5);
     
     function draw() {
         if(!isLoaded) {
             isLoaded = model1.loadData(gl!);
         } else {
-            model1.draw(gl!, shader);
+            // model1.draw(gl!, shader);
         }
-
-        // triangle.draw(gl!);
+        plane1.draw(gl!);
         window.requestAnimationFrame(draw);
     }
 
