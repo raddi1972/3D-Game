@@ -9,11 +9,11 @@ export class Plane extends Drawable {
         var indices: [number, number, number][] = [];
         var angle = 2*Math.PI/n;
 
-        var initial_point = [0.0, 0.5];
+        var initial_point = [0.0, 1.5];
         var temp = initial_point;
 
         // populating the points array
-        points.push(0.0, 0.5, -0.0);
+        points.push(0.0, 1.5, 0.0);
         for(let i=1;i<n;i++)
         {
             var x = Math.cos(angle)*temp[0] - Math.sin(angle)*temp[1];
@@ -44,6 +44,9 @@ export class Plane extends Drawable {
         var data = Plane.makePlane(n);
         super(gl);
 
+        // Added a field for points of the plane
+        this.vertices = data.points;
+
         // Binding the Vertex Array. A vertex array stores the information about
         // the indices and vertex data together. It also stores the configuration
         // of the vertex attributes together.
@@ -61,11 +64,13 @@ export class Plane extends Drawable {
         var modelUniform = gl.getUniformLocation(shader, 'model')
         var viewUniform = gl.getUniformLocation(shader, 'view')
         var projectionUniform = gl.getUniformLocation(shader, 'projection')
+        var color = gl.getUniformLocation(shader, 'a_color')
         gl.bindVertexArray(this.VAO);
         gl.useProgram(shader);
         gl.uniformMatrix4fv(modelUniform, false, this.model)
         gl.uniformMatrix4fv(viewUniform, false, camera.getView())
         gl.uniformMatrix4fv(projectionUniform, false, camera.projection)
+        gl.uniform3f(color, 0.5, 0.5, 0.5)
 
         gl.drawElements(gl.TRIANGLES, this.drawSize, gl.UNSIGNED_SHORT, 0);
     }

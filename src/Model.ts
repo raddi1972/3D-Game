@@ -13,6 +13,7 @@ export class Model {
     model: mat4
     view: mat4
     projection: mat4
+    color: vec3
     constructor(gl: WebGL2RenderingContext, filename: string) {
         this.meshData = null;
 
@@ -26,7 +27,9 @@ export class Model {
         this.projection = mat4.create()
         mat4.perspective(this.projection, toRadians(45.0), gl.canvas.width / gl.canvas.height, 0.1, 100.0)
 
-        fetch('static/models/cube.obj').then(async (response) => {
+        this.color = [0.6, 0.7, 0.3]
+
+        fetch(filename).then(async (response) => {
             const text = await response.text()
             this.meshData = new objLoader.Mesh(text);
         })
@@ -67,12 +70,14 @@ export class Model {
         var modelUniform = gl.getUniformLocation(shader, 'model')
         var viewUniform = gl.getUniformLocation(shader, 'view')
         var projectionUniform = gl.getUniformLocation(shader, 'projection')
+        var colorUniform = gl.getUniformLocation(shader, 'a_color')
         mat4.rotateX(this.model, this.model, toRadians(1))
         mat4.rotateY(this.model, this.model, toRadians(1))
         gl.useProgram(shader);
         gl.uniformMatrix4fv(modelUniform, false, this.model)
         gl.uniformMatrix4fv(viewUniform, false, this.view)
         gl.uniformMatrix4fv(projectionUniform, false, this.projection)
+        gl.uniform3f(colorUniform, this.color[0], this.color[1], this.color[2])
 
         gl.bindVertexArray(this.vao);
         gl.drawElements(gl.TRIANGLES, this.meshData!.indices.length, gl.UNSIGNED_SHORT, 0);
