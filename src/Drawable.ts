@@ -1,5 +1,6 @@
-import { mat4, vec3 } from "gl-matrix";
+import { mat4, vec3, vec4 } from "gl-matrix";
 import { Camera } from "./Camera";
+import { Rotate, Scale, Transform, Translate } from "./Transformations";
 
 export function toRadians(angle: number) {
     return (angle * Math.PI) / 180
@@ -71,10 +72,11 @@ export abstract class Drawable {
     VBO: WebGLBuffer | null
     EBO: WebGLBuffer | null
     drawSize = 0
-    model: mat4
     attribValue: number = 0
     stride: number = 0
     offset: number = 0
+    color = vec4.fromValues(0, 0, 0, 1);
+    transforms: Transform[]
     
     constructor(gl: WebGL2RenderingContext) {
         // These 3 properties are common across everywhere thus we instantiate in the super class
@@ -85,7 +87,7 @@ export abstract class Drawable {
         // model matrix is the property of the object itself thus including it here
         // view and projection matrices are global property
         // view, projection are used with camera
-        this.model = mat4.create();
+        this.transforms = []
     }
 
     abstract draw(gl: WebGL2RenderingContext, shader: WebGLShader, camera: Camera): void
@@ -120,6 +122,28 @@ export abstract class Drawable {
         gl.enableVertexAttribArray(this.attribValue);
         this.attribValue++;
         this.offset = this.stride;
+    }
+
+    addScaling(x: number, y: number, z: number) {
+        this.transforms.push(new Scale(x, y, z));
+    }
+
+    addTranslation(x: number, y: number, z: number) {
+        this.transforms.push(new Translate(x, y, z));
+    }
+
+    addRotate(angle: number, x: number, y: number, z: number) {
+        this.transforms.push(new Rotate(angle, x, y, z));
+    }
+
+    getModelMatrix() {
+        var model = mat4.create()
+        for(var i = this.transforms.length - 1; i >= 0; i--){
+            var transform = this.transforms[i];
+            console.log(transform);
+            transform!.applyTransform(model);
+        }
+        return model;
     }
 
     // constructor(gl: WebGL2RenderingContext, points: number[], indices: [number, number, number][], shader: WebGLProgram) {

@@ -26,7 +26,7 @@ export class Model {
         this.projection = mat4.create()
         mat4.perspective(this.projection, toRadians(45.0), gl.canvas.width / gl.canvas.height, 0.1, 100.0)
 
-        fetch('static/models/cube.obj').then(async (response) => {
+        fetch(filename).then(async (response) => {
             const text = await response.text()
             this.meshData = new objLoader.Mesh(text);
         })

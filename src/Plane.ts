@@ -1,8 +1,10 @@
-import { mat3, mat4, vec2, vec3 } from "gl-matrix";
+import { id_to_rgba, selectionShader } from "./app";
 import { Camera } from "./Camera";
 import { Drawable } from "./Drawable";
 
 export class Plane extends Drawable {
+
+    id: number
 
     static makePlane(n: number){
         var points: number[] = [];
@@ -13,7 +15,7 @@ export class Plane extends Drawable {
         var temp = initial_point;
 
         // populating the points array
-        points.push(0.0, 0.5, -0.0);
+        points.push(0.0, 0.5, 0.0);
         for(let i=1;i<n;i++)
         {
             var x = Math.cos(angle)*temp[0] - Math.sin(angle)*temp[1];
@@ -40,6 +42,7 @@ export class Plane extends Drawable {
     constructor(
         gl: WebGL2RenderingContext,
         n: number,
+        id: number
     ) {
         var data = Plane.makePlane(n);
         super(gl);
@@ -51,21 +54,30 @@ export class Plane extends Drawable {
         // automatically.
         
         // Vertex data setup
-
         this.addVertexData(gl, data.points.flat());
         this.addIndexData(gl, data.indices.flat());
         this.addAttribute(gl, 3, gl.FLOAT);
+        this.id = id
     }
 
     draw(gl: WebGL2RenderingContext, shader: WebGLShader, camera: Camera): void {
+        
+        gl.bindVertexArray(this.VAO);
+        gl.useProgram(shader);
         var modelUniform = gl.getUniformLocation(shader, 'model')
         var viewUniform = gl.getUniformLocation(shader, 'view')
         var projectionUniform = gl.getUniformLocation(shader, 'projection')
-        gl.bindVertexArray(this.VAO);
-        gl.useProgram(shader);
-        gl.uniformMatrix4fv(modelUniform, false, this.model)
+        gl.uniformMatrix4fv(modelUniform, false, this.getModelMatrix())
         gl.uniformMatrix4fv(viewUniform, false, camera.getView())
         gl.uniformMatrix4fv(projectionUniform, false, camera.projection)
+        if(shader == selectionShader) {
+            var color = gl.getUniformLocation(shader, 'selection')
+            gl.uniform4fv(color, id_to_rgba(gl, this.id));
+            // console.log(id_to_rgba(gl, this.id));
+        } else {
+            var color = gl.getUniformLocation(shader, 'color')
+            gl.uniform4fv(color, this.color);
+        }
 
         gl.drawElements(gl.TRIANGLES, this.drawSize, gl.UNSIGNED_SHORT, 0);
     }
