@@ -51,21 +51,52 @@ async function main() {
     // local server using the live-server or any other method
     
     var shader = getProgram(gl);
-    var model1 = new Model(gl, 'static/models/cube.obj');
-    var isLoaded = model1.loadData(gl);
 
-    var plane1 = new Plane(gl, 5);
+    var m = 4
+    var n = 5
+    var isLoaded = true
+    var modelArr: Model[] = []
+    var model1: Model
+
+    for(var i=0;i<m;i++)
+    {
+        model1 = new Model(gl, 'static/models/lamp.obj');
+        modelArr.push(model1);
+        isLoaded = isLoaded && model1.loadData(gl);
+    }
+
+    var plane1 = new Plane(gl, n);
     var perspective = mat4.create()
     mat4.perspective(perspective, toRadians(45.0), gl.canvas.width / gl.canvas.height, 0.1, 100.0)
     var camera = new Camera(vec3.create(), vec3.create(), perspective);
+
+    var polygonVertices = plane1.vertices;
     
     function draw() {
-        if(!isLoaded) {
-            isLoaded = model1.loadData(gl!);
-        } else {
-            // model1.draw(gl!, shader);
+        if(!isLoaded)
+        {
+            isLoaded=true;
+            for(var i=0;i<m;i++)
+            {
+                isLoaded = isLoaded && modelArr[i].loadData(gl!);
+            }
+            if(isLoaded)
+            {
+                for(var i=0;i<m;i++)
+                {
+                    mat4.translate(modelArr[i].model, modelArr[i].model, vec3.fromValues(polygonVertices[3*i], polygonVertices[3*i+1], polygonVertices[3*i+2]));
+                    mat4.scale(modelArr[i].model, modelArr[i].model, vec3.fromValues(0.3, 0.3, 0.3));
+                }
+            }
         }
-        plane1.draw(gl!, shader, camera);
+        else
+        {
+            plane1.draw(gl!, shader, camera);
+            for(var i=0;i<m;i++)
+            {
+                modelArr[i].draw(gl!, shader);
+            }
+        }
         window.requestAnimationFrame(draw);
     }
 

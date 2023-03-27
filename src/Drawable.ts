@@ -75,6 +75,7 @@ export abstract class Drawable {
     attribValue: number = 0
     stride: number = 0
     offset: number = 0
+    vertices: number[] = []
     
     constructor(gl: WebGL2RenderingContext) {
         // These 3 properties are common across everywhere thus we instantiate in the super class
