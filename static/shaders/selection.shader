@@ -1,7 +1,7 @@
 // fragment shaders don't have a default precision so we need
 // to pick one. mediump is a good default
-// precision mediump float;
-precision highp float;
+precision mediump float;
+// precision highp float;
 
 // Getting a custom color as a uniform
 uniform vec4 selection; 

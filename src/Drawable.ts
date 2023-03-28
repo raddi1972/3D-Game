@@ -77,6 +77,7 @@ export abstract class Drawable {
     offset: number = 0
     color = vec4.fromValues(0, 0, 0, 1);
     transforms: Transform[]
+    vertices: number[] = []
     
     constructor(gl: WebGL2RenderingContext) {
         // These 3 properties are common across everywhere thus we instantiate in the super class
@@ -139,8 +140,9 @@ export abstract class Drawable {
     getModelMatrix() {
         var model = mat4.create()
         for(var i = this.transforms.length - 1; i >= 0; i--){
+            // console.log("Hellow");
             var transform = this.transforms[i];
-            console.log(transform);
+            // console.log(transform);
             transform!.applyTransform(model);
         }
         return model;

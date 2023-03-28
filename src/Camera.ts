@@ -14,7 +14,7 @@ export class Camera {
 
     getView() {
         var view = mat4.create()
-        mat4.translate(view, view, vec3.fromValues(0.0, 0.0, -2.0))
+        mat4.translate(view, view, vec3.negate(vec3.create(), this.position))
         return view
     }
 
