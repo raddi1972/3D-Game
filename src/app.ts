@@ -98,7 +98,7 @@ export function id_to_rgba(gl: WebGL2RenderingContext, id: number) {
 
 async function main() {
     var gl = canvas.getContext("webgl2"); // get the glContext from the canvas
-
+    var center = true;
     if (!gl) {
         throw Error("Unable to create webgl context!");
     }
@@ -118,7 +118,6 @@ async function main() {
         selectionShader = shad;
     })
 
-    var model1 = new Model(gl, 'static/models/cube.obj', 2);
     var m = 4
     var n = 5
     var isLoaded = true
@@ -127,7 +126,7 @@ async function main() {
 
     for(var i=0;i<m;i++)
     {
-        model1 = new Model(gl, 'static/models/lamp.obj', i+3);
+        model1 = new Model(gl, 'static/models/lamp.obj', i+2);
         modelArr.push(model1);
         isLoaded = isLoaded && model1.loadData(gl);
     }
@@ -136,7 +135,9 @@ async function main() {
     // plane1.addRotate(10, 0, 1, 0)
     var perspective = mat4.create()
     mat4.perspective(perspective, toRadians(60.0), (gl.canvas as HTMLCanvasElement).clientWidth / (gl.canvas as HTMLCanvasElement).clientHeight, 0.1, 100.0)
-    var camera = new Camera(vec3.fromValues(0, 0, 4), vec3.create(), perspective);
+    var cameraTop = new Camera(vec3.fromValues(0, 0, 3), vec3.fromValues(0, 0, 1), perspective, vec3.fromValues(0, 1, 0));
+    var cameraCenter = new Camera(vec3.fromValues(0, 0, 0.1), vec3.fromValues(1, 1, 0), perspective, vec3.fromValues(0, 0, 1));
+    var camera = cameraTop
     canvas.addEventListener('mousemove', (evt) => {
 
         // mouse coordinates ->
@@ -144,11 +145,23 @@ async function main() {
         // reading from the color buffer i.e. reading the id
         if(selectionShader != null) {
             plane1.draw(gl!, selectionShader, camera);
+            for (var i = 0; i < m; i++) {
+                if (viewShader != null)
+                    modelArr[i].draw(gl!, selectionShader!, camera);
+            }
 
             var pixels = new Uint8Array(4)
             gl?.readPixels(_mouse.x, _mouse.y, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
 
             var id = rgba_to_id(gl!, pixels[0], pixels[1], pixels[2], pixels[3]);
+
+            for(var i = 0; i < modelArr.length; i++) {
+                if ( id == i+2) {
+                    modelArr[i].color = vec4.fromValues(0.5, 0.5, 0.5, 1);
+                } else {
+                    modelArr[i].color = vec4.fromValues(0.6, 0.7, 0.3, 1);
+                }
+            }
 
             if(id == plane1.id) {
                 plane1.color = vec4.fromValues(0.5, 0.5, 0.5, 1);
@@ -161,6 +174,12 @@ async function main() {
     })
 
     function draw() {
+
+        if(center) {
+            camera = cameraCenter;
+        } else {
+            camera = cameraTop;
+        }
         gl!.clear(gl!.COLOR_BUFFER_BIT | gl!.DEPTH_BUFFER_BIT);
 
         var polygonVertices = plane1.vertices;
@@ -175,9 +194,10 @@ async function main() {
             {
                 for(var i=0;i<m;i++)
                 {
+                    modelArr[i].addRotate(180, 0, 1, 0);
                     modelArr[i].addScaling(0.3, 0.3, 0.3);
                     modelArr[i].addTranslation(polygonVertices[3 * i], polygonVertices[3 * i + 1], polygonVertices[3 * i + 2])
-                    // modelArr[i].addRotate(100, 0, 1, 0);
+                    modelArr[i].addTranslation(0, 0, 0.2);
                 }
             }
         }

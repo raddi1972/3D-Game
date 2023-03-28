@@ -5,16 +5,17 @@ export class Camera {
     position: vec3
     direction: vec3
     projection: mat4
+    up: vec3
 
-    constructor(position:vec3 , direction: vec3, projection: mat4) {
+    constructor(position:vec3 , direction: vec3, projection: mat4, up: vec3) {
         this.position = position;
         this.direction = direction;
         this.projection = projection;
+        this.up = up
     }
 
     getView() {
-        var view = mat4.create()
-        mat4.translate(view, view, vec3.negate(vec3.create(), this.position))
+        var view = mat4.lookAt(mat4.create(), this.position, vec3.subtract(vec3.create(), this.position, this.direction), this.up)
         return view
     }
 

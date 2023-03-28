@@ -2,6 +2,7 @@ import * as objLoader from "webgl-obj-loader"
 import { mat4, vec3, vec4 } from "gl-matrix";
 import { Drawable } from "./Drawable";
 import { Camera } from "./Camera";
+import { id_to_rgba, selectionShader } from "./app";
 
 function toRadians(angle: number) {
     return (angle * Math.PI) / 180
@@ -37,11 +38,16 @@ export class Model extends Drawable {
         var modelUniform = gl.getUniformLocation(shader, 'model')
         var viewUniform = gl.getUniformLocation(shader, 'view')
         var projectionUniform = gl.getUniformLocation(shader, 'projection')
-        var colorUniform = gl.getUniformLocation(shader, 'color')
         gl.uniformMatrix4fv(modelUniform, false, this.getModelMatrix())
         gl.uniformMatrix4fv(viewUniform, false, camera.getView())
         gl.uniformMatrix4fv(projectionUniform, false, camera.projection)
-        gl.uniform4f(colorUniform, this.color[0], this.color[1], this.color[2], this.color[3])
+        if (shader == selectionShader) {
+            var color = gl.getUniformLocation(shader, 'selection')
+            gl.uniform4fv(color, id_to_rgba(gl, this.id));
+        } else {
+            var color = gl.getUniformLocation(shader, 'color')
+            gl.uniform4f(color, this.color[0], this.color[1], this.color[2], this.color[3])
+        }
 
         gl.drawElements(gl.TRIANGLES, this.drawSize, gl.UNSIGNED_SHORT, 0);
     }
