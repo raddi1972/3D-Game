@@ -129,12 +129,39 @@ export abstract class Drawable {
         this.transforms.push(new Scale(x, y, z));
     }
 
+    purgeScalers() {
+        this.transforms = this.transforms.filter((value) => {
+            if(value instanceof Scale) {
+                return false;
+            }
+            return true;
+        })
+    }
+
     addTranslation(x: number, y: number, z: number) {
         this.transforms.push(new Translate(x, y, z));
     }
 
+    purgeTranslation() {
+        this.transforms = this.transforms.filter((value) => {
+            if (value instanceof Translate) {
+                return false;
+            }
+            return true;
+        })
+    }
+
     addRotate(angle: number, x: number, y: number, z: number) {
         this.transforms.push(new Rotate(angle, x, y, z));
+    }
+
+    purgeRotation() {
+        this.transforms = this.transforms.filter((value) => {
+            if (value instanceof Rotate) {
+                return false;
+            }
+            return true;
+        })
     }
 
     getModelMatrix() {
@@ -148,47 +175,6 @@ export abstract class Drawable {
         return model;
     }
 
-    // constructor(gl: WebGL2RenderingContext, points: number[], indices: [number, number, number][], shader: WebGLProgram) {
-    //     this.vao = gl.createVertexArray();
-    //     this.vbo = gl.createBuffer();
-    //     this.ebo = gl.createBuffer();
-
-    //     this.points = points;
-    //     this.indices = indices;
-    //     this.shader = shader;
-
-    //     this.model = mat4.create()
-    //     this.view = mat4.create()
-    //     mat4.translate(this.view, this.view, vec3.fromValues(0.0, 0.0, -3.0))
-    //     this.projection = mat4.create()
-    //     mat4.perspective(this.projection, toRadians(45.0), gl.canvas.width/gl.canvas.height, 0.1, 100.0)
-
-    //     gl.bindVertexArray(this.vao);
-    //     gl.bindBuffer(gl.ARRAY_BUFFER, this.vbo);
-    //     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(this.points.flat()), gl.STATIC_DRAW);
-
-    //     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.ebo);
-    //     gl.bufferData(
-    //         gl.ELEMENT_ARRAY_BUFFER,
-    //         new Uint16Array(this.indices.flat()),
-    //         gl.STATIC_DRAW
-    //     );
-        
-    //     gl.enableVertexAttribArray(0);
-    //     gl.vertexAttribPointer(
-    //         0, 3, gl.FLOAT, false, 5 * 4, 0
-    //     );
-
-    //     gl.enableVertexAttribArray(1);
-    //     gl.vertexAttribPointer(
-    //         1, 2, gl.FLOAT, false, 5 * 4, 3 * 4
-    //     )
-    //     this.texture = loadTexture(gl, "https://i.postimg.cc/RVGWYtXg/awesomeface.png")!;
-    //     gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
-
-    //     gl.bindVertexArray(null);
-    //     gl.bindBuffer(gl.ARRAY_BUFFER, null);
-    //     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
-    // }
+    
 
 }

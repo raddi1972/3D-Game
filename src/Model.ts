@@ -11,24 +11,37 @@ function toRadians(angle: number) {
 export class Model extends Drawable {
     meshData: objLoader.Mesh | null
     id: number
+    front: vec3
+    loaded = false
     constructor(gl: WebGL2RenderingContext, filename: string, id: number) {
         super(gl);
         this.meshData = null;
         this.id = id;
         this.color = vec4.fromValues(0.6, 0.7, 0.3, 1);
+        this.front = vec3.fromValues(0, 0, 0);
 
         fetch(filename).then(async (response) => {
             const text = await response.text()
             this.meshData = new objLoader.Mesh(text);
+            console.log(this.meshData);
+            this.loadData(gl);
         })
     }
+
+    addFront(front :vec3) {
+        this.front = front;
+    }
+
     loadData(gl: WebGL2RenderingContext) : boolean {
         if (this.meshData == null)
           return false
+        if (this.loaded)
+            return this.loaded
 
         this.addVertexData(gl, this.meshData.vertices);
         this.addIndexData(gl, this.meshData.indices)
         this.addAttribute(gl, 3, gl.FLOAT);
+        this.loaded = true;
         return true;
     }
 
@@ -48,7 +61,6 @@ export class Model extends Drawable {
             var color = gl.getUniformLocation(shader, 'color')
             gl.uniform4f(color, this.color[0], this.color[1], this.color[2], this.color[3])
         }
-
         gl.drawElements(gl.TRIANGLES, this.drawSize, gl.UNSIGNED_SHORT, 0);
     }
 }

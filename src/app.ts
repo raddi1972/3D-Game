@@ -4,6 +4,7 @@ import { Model } from "./Model";
 import { Camera } from "./Camera";
 import { mat4, vec2, vec3, vec4 } from "gl-matrix";
 import { toRadians } from "./Drawable";
+import { Arrow } from "./Arrow";
 export var canvas = <HTMLCanvasElement>document.querySelector("#c"); // Get the canvas
 
 function resizeCanvasToDisplaySize(canvas: HTMLCanvasElement) {
@@ -133,12 +134,16 @@ async function main() {
     }
 
     var plane1 = new Plane(gl, n, 1);
-    // plane1.addRotate(10, 0, 1, 0)
     var perspective = mat4.create()
     mat4.perspective(perspective, toRadians(60.0), (gl.canvas as HTMLCanvasElement).clientWidth / (gl.canvas as HTMLCanvasElement).clientHeight, 0.1, 100.0)
     var cameraTop = new Camera(vec3.fromValues(0, 0, 3), vec3.fromValues(0, 0, 1), perspective, vec3.fromValues(0, 1, 0));
     var cameraCenter = new Camera(vec3.fromValues(0, 0, 0.1), vec3.fromValues(1, 1, 0), perspective, vec3.fromValues(0, 0, 1));
     var camera = cameraTop
+
+    var catcher: Model | null = null;
+
+    var arrow = new Arrow(gl, 'static/models/new_arrow.obj', 100);
+    arrow.color = vec4.fromValues(0.5, 0.5, 0.5, 1);
 
     // When in 3D mode use the mousedown and mouseup to figure
     // out the vector and take its component along x axis.
@@ -149,6 +154,33 @@ async function main() {
         if(isCentered) {
             initialMousePosition = vec2.fromValues(_mouse.x , _mouse.y)
         }
+        else {
+            var _mouse = getMousePos(canvas, evt);
+            // reading from the color buffer i.e. reading the id
+            if (selectionShader != null && catcher == null) {
+                plane1.draw(gl!, selectionShader, camera);
+                for (var i = 0; i < m; i++) {
+                    if (viewShader != null)
+                        modelArr[i].draw(gl!, selectionShader, camera);
+                }
+
+                var pixels = new Uint8Array(4)
+                gl?.readPixels(_mouse.x, _mouse.y, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
+
+                var id = rgba_to_id(gl!, pixels[0], pixels[1], pixels[2], pixels[3]);
+
+                for (var i = 0; i < modelArr.length; i++) {
+                    if (id == i + 2) {
+                        catcher = modelArr[i];
+                        catcher.color = vec4.fromValues(0.5, 0.5, 0.5, 1);
+                        var direction = vec3.fromValues(0 - catcher.front[0], 0 - catcher.front[1], 0- catcher.front[2])
+                        console.log(catcher.front)
+                        arrow.setDirection(catcher.front[0], catcher.front[1]);
+                    }
+                }
+                plane1.draw(gl!, viewShader!, camera);
+            }
+        }
     })
 
     canvas.addEventListener('mouseup', (evt) => {
@@ -158,6 +190,7 @@ async function main() {
             vec2.normalize(difference, difference);
             camera.rotateCamera(difference[0] * 10);
         }
+        
     })
 
     // Now when you press v the camera angles change from 3D to drag mode
@@ -171,76 +204,53 @@ async function main() {
     canvas.addEventListener('mousemove', (evt) => {
 
         // mouse coordinates ->
-        var _mouse = getMousePos(canvas, evt);
-        // reading from the color buffer i.e. reading the id
-        if(selectionShader != null) {
-            plane1.draw(gl!, selectionShader, camera);
-            for (var i = 0; i < m; i++) {
-                if (viewShader != null)
-                    modelArr[i].draw(gl!, selectionShader!, camera);
-            }
-
-            var pixels = new Uint8Array(4)
-            gl?.readPixels(_mouse.x, _mouse.y, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
-
-            var id = rgba_to_id(gl!, pixels[0], pixels[1], pixels[2], pixels[3]);
-
-            for(var i = 0; i < modelArr.length; i++) {
-                if ( id == i+2) {
-                    modelArr[i].color = vec4.fromValues(0.5, 0.5, 0.5, 1);
-                } else {
-                    modelArr[i].color = vec4.fromValues(0.6, 0.7, 0.3, 1);
-                }
-            }
-
-            if(id == plane1.id) {
-                plane1.color = vec4.fromValues(0.5, 0.5, 0.5, 1);
-            } else {
-                plane1.color = vec4.fromValues(0, 0, 0, 1);
-            }
-            plane1.draw(gl!, viewShader!, camera);
-        }
+        
 
     })
 
     function draw() {
+        if (viewShader != null) {
 
-        if(isCentered) {
-            camera = cameraCenter;
-        } else {
-            camera = cameraTop;
-        }
-        gl!.clear(gl!.COLOR_BUFFER_BIT | gl!.DEPTH_BUFFER_BIT);
-
-        var polygonVertices = plane1.vertices;
-        if(!isLoaded)
-        {
-            isLoaded=true;
-            for(var i=0;i<m;i++)
-            {
-                isLoaded = isLoaded && modelArr[i].loadData(gl!);
+            if(isCentered) {
+                camera = cameraCenter;
+            } else {
+                camera = cameraTop;
             }
-            if(isLoaded)
+            gl!.clear(gl!.COLOR_BUFFER_BIT | gl!.DEPTH_BUFFER_BIT);
+            if (arrow.loadData(gl!)) {
+                arrow.draw(gl!, viewShader, camera);
+            }
+            var polygonVertices = plane1.vertices;
+            if(!isLoaded)
             {
+                isLoaded=true;
                 for(var i=0;i<m;i++)
                 {
-                    modelArr[i].addRotate(180, 0, 1, 0);
-                    modelArr[i].addScaling(0.3, 0.3, 0.3);
-                    modelArr[i].addTranslation(polygonVertices[3 * i], polygonVertices[3 * i + 1], polygonVertices[3 * i + 2])
-                    modelArr[i].addTranslation(0, 0, 0.2);
+                    isLoaded = isLoaded && modelArr[i].loadData(gl!);
+                }
+                if(isLoaded)
+                {
+                    for(var i=0;i<m;i++)
+                    {
+                        modelArr[i].addRotate(180, 0, 1, 0);
+                        modelArr[i].addScaling(0.3, 0.3, 0.3);
+                        modelArr[i].addTranslation(polygonVertices[3 * i], polygonVertices[3 * i + 1], polygonVertices[3 * i + 2])
+                        modelArr[i].addFront(vec3.fromValues(0 - polygonVertices[3 * i], 0 - polygonVertices[3 * i + 1], 0 - polygonVertices[3 * i + 2]));
+                        modelArr[i].addTranslation(0, 0, 0.2);
+                    }
                 }
             }
-        }
-        else
-        {
-            if (viewShader != null)
-                plane1.draw(gl!, viewShader, camera);
-            for(var i=0;i<m;i++)
+            else
             {
-                if (viewShader != null)
-                    modelArr[i].draw(gl!, viewShader!, camera);
+                // plane1.draw(gl!, viewShader, camera);
+                for(var i=0;i<m;i++)
+                {
+                    if(modelArr[i] != catcher)
+                        modelArr[i].draw(gl!, viewShader!, camera);
+                }
+                catcher?.draw(gl!, viewShader, camera);
             }
-        }
+        }       
         window.requestAnimationFrame(draw);
     }
 
