@@ -2,7 +2,7 @@ import { Plane } from "./Plane";
 import { createShader, createProgram } from "./Shader";
 import { Model } from "./Model";
 import { Camera } from "./Camera";
-import { mat4, vec3, vec4 } from "gl-matrix";
+import { mat4, vec2, vec3, vec4 } from "gl-matrix";
 import { toRadians } from "./Drawable";
 export var canvas = <HTMLCanvasElement>document.querySelector("#c"); // Get the canvas
 
@@ -26,6 +26,7 @@ function resizeCanvasToDisplaySize(canvas: HTMLCanvasElement) {
 
 export var selectionShader: WebGLProgram | null = null;
 export var viewShader: WebGLProgram | null = null;
+var initialMousePosition: vec2| null = null
 
 
 async function readShaderProgram(filename: string) {
@@ -98,7 +99,7 @@ export function id_to_rgba(gl: WebGL2RenderingContext, id: number) {
 
 async function main() {
     var gl = canvas.getContext("webgl2"); // get the glContext from the canvas
-    var center = true;
+    var isCentered = true;
     if (!gl) {
         throw Error("Unable to create webgl context!");
     }
@@ -138,6 +139,35 @@ async function main() {
     var cameraTop = new Camera(vec3.fromValues(0, 0, 3), vec3.fromValues(0, 0, 1), perspective, vec3.fromValues(0, 1, 0));
     var cameraCenter = new Camera(vec3.fromValues(0, 0, 0.1), vec3.fromValues(1, 1, 0), perspective, vec3.fromValues(0, 0, 1));
     var camera = cameraTop
+
+    // When in 3D mode use the mousedown and mouseup to figure
+    // out the vector and take its component along x axis.
+    // Use this information to find out how much to rotate.
+
+    canvas.addEventListener('mousedown', (evt) => {
+        var _mouse = getMousePos(canvas, evt);
+        if(isCentered) {
+            initialMousePosition = vec2.fromValues(_mouse.x , _mouse.y)
+        }
+    })
+
+    canvas.addEventListener('mouseup', (evt) => {
+        var _mouse = getMousePos(canvas, evt);
+        if(isCentered && initialMousePosition != null) {
+            var difference = vec2.sub(vec2.create(), vec2.fromValues(_mouse.x, _mouse.y), initialMousePosition);
+            vec2.normalize(difference, difference);
+            camera.rotateCamera(difference[0] * 10);
+        }
+    })
+
+    // Now when you press v the camera angles change from 3D to drag mode
+    document.onkeydown = (e) => {
+        if (e.key == 'v') {
+            isCentered = !isCentered;
+        }
+
+    }
+
     canvas.addEventListener('mousemove', (evt) => {
 
         // mouse coordinates ->
@@ -175,7 +205,7 @@ async function main() {
 
     function draw() {
 
-        if(center) {
+        if(isCentered) {
             camera = cameraCenter;
         } else {
             camera = cameraTop;

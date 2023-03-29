@@ -1,4 +1,5 @@
 import { mat4, vec3, vec4 } from "gl-matrix";
+import { toRadians } from "./Drawable";
 
 export class Camera {
 
@@ -12,6 +13,10 @@ export class Camera {
         this.direction = direction;
         this.projection = projection;
         this.up = up
+    }
+
+    rotateCamera(angle: number) {
+        vec3.rotateZ(this.direction, this.direction, vec3.fromValues(0, 0, 0), toRadians(angle));
     }
 
     getView() {
