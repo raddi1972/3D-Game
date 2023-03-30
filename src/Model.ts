@@ -17,13 +17,12 @@ export class Model extends Drawable {
         super(gl);
         this.meshData = null;
         this.id = id;
-        this.color = vec4.fromValues(0.6, 0.7, 0.3, 1);
+        this.color = vec4.fromValues(Math.random(), Math.random(), Math.random(), 1);
         this.front = vec3.fromValues(0, 0, 0);
 
         fetch(filename).then(async (response) => {
             const text = await response.text()
             this.meshData = new objLoader.Mesh(text);
-            console.log(this.meshData);
             this.loadData(gl);
         })
     }

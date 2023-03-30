@@ -59,6 +59,53 @@ function getMousePos(canvas: HTMLCanvasElement, evt: MouseEvent) {
     };
 }
 
+function generateDest(m: number, id:number, empty: number[]) {
+    var temp = id;
+    while(true)
+    {
+        temp = Math.floor(Math.random()*(m+2-2) + 2);
+        if(temp!=id && !empty.includes(temp))
+        {
+            break;
+        }
+    }
+    return temp;
+}
+
+function generateEmptyDest(empty: number[])
+{
+    var len = empty.length;
+    return empty[Math.floor(Math.random()*len)];
+}
+
+function initialiseEmptyVertices(empty: number[], m:number, n:number){
+    for(let i=m;i<n;i++)
+    {
+        empty.push(i+2);
+    }
+    return empty;
+}
+
+function dotProduct(vect_A:vec3, vect_B:vec3)
+{
+
+    let product = 0;
+
+    // Loop for calculate dot product
+    for (let i = 0; i < 3; i++)
+        product = product + vect_A[i] * vect_B[i];
+    return product;
+}
+
+function crossProduct(vect_A: vec3, vect_B: vec3)
+{
+    var cross_P: number[] = [];
+    cross_P[0] = vect_A[1] * vect_B[2] - vect_A[2] * vect_B[1];
+    cross_P[1] = vect_A[2] * vect_B[0] - vect_A[0] * vect_B[2];
+    cross_P[2] = vect_A[0] * vect_B[1] - vect_A[1] * vect_B[0];
+    return cross_P;
+}
+
 export function rgba_to_id(gl: WebGL2RenderingContext, r: number, g: number, b: number, a: number) {
     var red_bits = gl.getParameter(gl.RED_BITS);
     var green_bits = gl.getParameter(gl.GREEN_BITS);
@@ -100,7 +147,7 @@ export function id_to_rgba(gl: WebGL2RenderingContext, id: number) {
 
 async function main() {
     var gl = canvas.getContext("webgl2"); // get the glContext from the canvas
-    var isCentered = true;
+    var isCentered = false;
     if (!gl) {
         throw Error("Unable to create webgl context!");
     }
@@ -139,23 +186,27 @@ async function main() {
     var cameraTop = new Camera(vec3.fromValues(0, 0, 3), vec3.fromValues(0, 0, 1), perspective, vec3.fromValues(0, 1, 0));
     var cameraCenter = new Camera(vec3.fromValues(0, 0, 0.1), vec3.fromValues(1, 1, 0), perspective, vec3.fromValues(0, 0, 1));
     var camera = cameraTop
+    var polygonVertices = plane1.vertices;
+    var emptyVertices = initialiseEmptyVertices([], m, n);
 
     var catcher: Model | null = null;
 
-    var arrow = new Arrow(gl, 'static/models/new_arrow.obj', 100);
-    arrow.color = vec4.fromValues(0.5, 0.5, 0.5, 1);
+    var arrow1 : Arrow | null = null;
+    var arrow2 : Arrow | null = null;
+    var isDown = false;
 
     // When in 3D mode use the mousedown and mouseup to figure
     // out the vector and take its component along x axis.
     // Use this information to find out how much to rotate.
 
-    canvas.addEventListener('mousedown', (evt) => {
+    canvas.addEventListener("mousedown", (evt) => {
         var _mouse = getMousePos(canvas, evt);
         if(isCentered) {
             initialMousePosition = vec2.fromValues(_mouse.x , _mouse.y)
         }
         else {
             var _mouse = getMousePos(canvas, evt);
+            isDown = true;
             // reading from the color buffer i.e. reading the id
             if (selectionShader != null && catcher == null) {
                 plane1.draw(gl!, selectionShader, camera);
@@ -168,20 +219,84 @@ async function main() {
                 gl?.readPixels(_mouse.x, _mouse.y, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
 
                 var id = rgba_to_id(gl!, pixels[0], pixels[1], pixels[2], pixels[3]);
+                var dest: number, dest2: number;
+                var direction: vec3|null = null, direction2: vec3|null = null;
 
                 for (var i = 0; i < modelArr.length; i++) {
                     if (id == i + 2) {
                         catcher = modelArr[i];
                         catcher.color = vec4.fromValues(0.5, 0.5, 0.5, 1);
-                        var direction = vec3.fromValues(0 - catcher.front[0], 0 - catcher.front[1], 0- catcher.front[2])
-                        console.log(catcher.front)
-                        arrow.setDirection(catcher.front[0], catcher.front[1]);
+                        
+                        // Generating destination for catcher
+                        dest = generateDest(m, id, emptyVertices)-2;
+                        arrow1 = new Arrow(gl!, 'static/models/new_arrow.obj', 100);
+                        arrow1.color = vec4.fromValues(1, 0.0, 0.0, 1);
+                        // console.log("catcher", catcher.id-2, "destination", dest);
+                        direction = vec3.fromValues(polygonVertices[3*dest] - polygonVertices[3*(catcher.id-2)], polygonVertices[3*dest + 1] - polygonVertices[3*(catcher.id-2)+1], polygonVertices[3*dest+2] - polygonVertices[3*(catcher.id-2)+2]);
+                        console.log(direction);
+                        arrow1.setDirection(direction[0], direction[1]);
+                        arrow1.setPosition(polygonVertices[3*(catcher.id-2)], polygonVertices[3*(catcher.id-2)+1], polygonVertices[3*(catcher.id-2)+2]);
+
+                        // Generating new position for destination
+                        dest2 = generateEmptyDest(emptyVertices) - 2; // generateDest(m, dest+2)-2;
+                        arrow2 = new Arrow(gl!, 'static/models/new_arrow.obj', 100);
+                        arrow2.color = vec4.fromValues(1, 0.0, 0.0, 1);
+                        direction2 = vec3.fromValues(polygonVertices[3*dest2] - polygonVertices[3*(dest)], polygonVertices[3*dest2 + 1] - polygonVertices[3*(dest)+1], polygonVertices[3*dest2+2] - polygonVertices[3*(dest)+2]);
+                        arrow2.setDirection(direction2[0], direction2[1]);
+                        arrow2.setPosition(polygonVertices[3*(dest)], polygonVertices[3*(dest)+1], polygonVertices[3*(dest)+2]);
+
+                        var index = emptyVertices.indexOf(dest2+2);
+                        emptyVertices[index] = catcher.id;
+                        console.log(emptyVertices);
                     }
                 }
+
+                canvas.addEventListener("mouseup", (evt3) => {
+                    isDown=false;
+                })
+
+                canvas.addEventListener("mousemove", (evt2) => {
+                    if(isDown)
+                    {
+                        var _newmouse = getMousePos(canvas, evt2);
+                        var x = _newmouse.x - _mouse.x;
+                        var y = _newmouse.y - _mouse.y;
+                        var distance = (Math.sqrt(x*x + y*y))/500;
+                        // console.log(polygonVertices[3*(catcher!.id-2)] + direction[0]*distance, polygonVertices[3*(catcher!.id-2)+1] + direction[1]*distance);
+                        arrow1!.setPosition(polygonVertices[3*(catcher!.id-2)] + direction![0]*distance, polygonVertices[3*(catcher!.id-2)+1] + direction![1]*distance, 0);
+                        modelArr[catcher!.id-2].purgeTranslation();
+                        modelArr[catcher!.id-2].addTranslation(polygonVertices[3*(catcher!.id-2)] + direction![0]*distance, polygonVertices[3*(catcher!.id-2)+1] + direction![1]*distance, 0);
+                        
+                        arrow2!.setPosition(polygonVertices[3*(dest)] + direction2![0]*distance, polygonVertices[3*(dest)+1] + direction2![1]*distance, 0);
+                        modelArr[dest].purgeTranslation();
+                        modelArr[dest].addTranslation(polygonVertices[3*(dest)] + direction2![0]*distance, polygonVertices[3*(dest)+1] + direction2![1]*distance, 0);
+                        // console.log(polygonVertices[3*(catcher!.id-2)] + direction[0]*distance - polygonVertices[3*dest]);
+                        if(polygonVertices[3*(catcher!.id-2)] + direction![0]*distance - polygonVertices[3*dest] < 0.01 
+                            && polygonVertices[3*(catcher!.id-2)+1] + direction![1]*distance - polygonVertices[3*dest + 1] < 0.01)
+                            {
+                                catcher!.color = vec4.fromValues(Math.random(),Math.random(),Math.random(),1);
+                                
+                                var temp = catcher!.id;
+                                catcher!.id = modelArr[dest].id;
+                                modelArr[dest].id = dest2;
+                                
+                                isDown = false;
+                                arrow1 = null;
+                                arrow2 = null;
+                                direction = null;
+                                direction2 = null;
+                                catcher = null;
+                                dest = -1;
+                                dest2 = -1;
+                                
+                            }
+                    }
+                })
+
                 plane1.draw(gl!, viewShader!, camera);
             }
         }
-    })
+    })    
 
     canvas.addEventListener('mouseup', (evt) => {
         var _mouse = getMousePos(canvas, evt);
@@ -201,12 +316,12 @@ async function main() {
 
     }
 
-    canvas.addEventListener('mousemove', (evt) => {
+    // canvas.addEventListener('mousemove', (evt) => {
 
-        // mouse coordinates ->
+    //     // mouse coordinates ->
         
 
-    })
+    // })
 
     function draw() {
         if (viewShader != null) {
@@ -217,8 +332,11 @@ async function main() {
                 camera = cameraTop;
             }
             gl!.clear(gl!.COLOR_BUFFER_BIT | gl!.DEPTH_BUFFER_BIT);
-            if (arrow.loadData(gl!)) {
-                arrow.draw(gl!, viewShader, camera);
+            if (arrow1!=null && arrow1.loadData(gl!)) {
+                arrow1.draw(gl!, viewShader, camera);
+            }
+            if (arrow2!=null && arrow2.loadData(gl!)) {
+                arrow2.draw(gl!, viewShader, camera);
             }
             var polygonVertices = plane1.vertices;
             if(!isLoaded)
@@ -242,7 +360,7 @@ async function main() {
             }
             else
             {
-                // plane1.draw(gl!, viewShader, camera);
+                plane1.draw(gl!, viewShader, camera);
                 for(var i=0;i<m;i++)
                 {
                     if(modelArr[i] != catcher)
