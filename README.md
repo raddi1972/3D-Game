@@ -7,5 +7,6 @@
 - Select an object you want to move by pressing on it (left click button on mouse)
 - Without releasing the mouse button, drag the object to its destination
 - The object at the destination location makes way for the incoming object, and itself moves to empty location
+- Change the camera view angle using the key *v* on the keyboard. Drag using the mouse to move around.
 - You can change the number of objects (m) and the number of vertices of the plane by manually modifying the variable value in *app.js* on line number 170
 - To apply the changes, run `npm run build` on the command line
