@@ -219,6 +219,7 @@ async function main() {
                 gl?.readPixels(_mouse.x, _mouse.y, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
 
                 var id = rgba_to_id(gl!, pixels[0], pixels[1], pixels[2], pixels[3]);
+                console.log(id);
                 var dest: number, dest2: number;
                 var direction: vec3|null = null, direction2: vec3|null = null;
 
@@ -229,21 +230,20 @@ async function main() {
                         
                         // Generating destination for catcher
                         dest = generateDest(m, id, emptyVertices)-2;
-                        arrow1 = new Arrow(gl!, 'static/models/new_arrow.obj', 100);
-                        arrow1.color = vec4.fromValues(1, 0.0, 0.0, 1);
+                        arrow1! = new Arrow(gl!, 'static/models/new_arrow.obj', 100);
+                        arrow1!.color = vec4.fromValues(1, 0.0, 0.0, 1);
                         // console.log("catcher", catcher.id-2, "destination", dest);
-                        direction = vec3.fromValues(polygonVertices[3*dest] - polygonVertices[3*(catcher.id-2)], polygonVertices[3*dest + 1] - polygonVertices[3*(catcher.id-2)+1], polygonVertices[3*dest+2] - polygonVertices[3*(catcher.id-2)+2]);
-                        console.log(direction);
-                        arrow1.setDirection(direction[0], direction[1]);
-                        arrow1.setPosition(polygonVertices[3*(catcher.id-2)], polygonVertices[3*(catcher.id-2)+1], polygonVertices[3*(catcher.id-2)+2]);
+                        direction! = vec3.fromValues(polygonVertices[3*dest] - polygonVertices[3*(catcher.id-2)], polygonVertices[3*dest + 1] - polygonVertices[3*(catcher.id-2)+1], polygonVertices[3*dest+2] - polygonVertices[3*(catcher.id-2)+2]);
+                        arrow1!.setDirection(direction![0], direction![1]);
+                        arrow1!.setPosition(polygonVertices[3*(catcher.id-2)], polygonVertices[3*(catcher.id-2)+1], polygonVertices[3*(catcher.id-2)+2]);
 
                         // Generating new position for destination
                         dest2 = generateEmptyDest(emptyVertices) - 2; // generateDest(m, dest+2)-2;
-                        arrow2 = new Arrow(gl!, 'static/models/new_arrow.obj', 100);
-                        arrow2.color = vec4.fromValues(1, 0.0, 0.0, 1);
-                        direction2 = vec3.fromValues(polygonVertices[3*dest2] - polygonVertices[3*(dest)], polygonVertices[3*dest2 + 1] - polygonVertices[3*(dest)+1], polygonVertices[3*dest2+2] - polygonVertices[3*(dest)+2]);
-                        arrow2.setDirection(direction2[0], direction2[1]);
-                        arrow2.setPosition(polygonVertices[3*(dest)], polygonVertices[3*(dest)+1], polygonVertices[3*(dest)+2]);
+                        arrow2! = new Arrow(gl!, 'static/models/new_arrow.obj', 100);
+                        arrow2!.color = vec4.fromValues(1, 0.0, 0.0, 1);
+                        direction2! = vec3.fromValues(polygonVertices[3*dest2] - polygonVertices[3*(dest)], polygonVertices[3*dest2 + 1] - polygonVertices[3*(dest)+1], polygonVertices[3*dest2+2] - polygonVertices[3*(dest)+2]);
+                        arrow2!.setDirection(direction2![0], direction2![1]);
+                        arrow2!.setPosition(polygonVertices[3*(dest)], polygonVertices[3*(dest)+1], polygonVertices[3*(dest)+2]);
 
                         var index = emptyVertices.indexOf(dest2+2);
                         emptyVertices[index] = catcher.id;
@@ -271,14 +271,10 @@ async function main() {
                         modelArr[dest].purgeTranslation();
                         modelArr[dest].addTranslation(polygonVertices[3*(dest)] + direction2![0]*distance, polygonVertices[3*(dest)+1] + direction2![1]*distance, 0);
                         // console.log(polygonVertices[3*(catcher!.id-2)] + direction[0]*distance - polygonVertices[3*dest]);
-                        if(polygonVertices[3*(catcher!.id-2)] + direction![0]*distance - polygonVertices[3*dest] < 0.01 
-                            && polygonVertices[3*(catcher!.id-2)+1] + direction![1]*distance - polygonVertices[3*dest + 1] < 0.01)
+                        if((polygonVertices[3*(catcher!.id-2)] + direction![0]*distance - polygonVertices[3*dest] < 0.01) && (polygonVertices[3*(catcher!.id-2)] + direction![0]*distance - polygonVertices[3*dest] >= -0.01)
+                            && (polygonVertices[3*(catcher!.id-2)+1] + direction![1]*distance - polygonVertices[3*dest + 1] < 0.01) && (polygonVertices[3*(catcher!.id-2)+1] + direction![1]*distance - polygonVertices[3*dest + 1] >= -0.01))
                             {
                                 catcher!.color = vec4.fromValues(Math.random(),Math.random(),Math.random(),1);
-                                
-                                var temp = catcher!.id;
-                                catcher!.id = modelArr[dest].id;
-                                modelArr[dest].id = dest2;
                                 
                                 isDown = false;
                                 arrow1 = null;
