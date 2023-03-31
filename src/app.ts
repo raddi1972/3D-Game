@@ -199,100 +199,103 @@ async function main() {
     // out the vector and take its component along x axis.
     // Use this information to find out how much to rotate.
 
-    canvas.addEventListener("mousedown", (evt) => {
-        var _mouse = getMousePos(canvas, evt);
-        if(isCentered) {
-            initialMousePosition = vec2.fromValues(_mouse.x , _mouse.y)
-        }
-        else {
+    if(m<n)
+    {
+        canvas.addEventListener("mousedown", (evt) => {
             var _mouse = getMousePos(canvas, evt);
-            isDown = true;
-            // reading from the color buffer i.e. reading the id
-            if (selectionShader != null && catcher == null) {
-                plane1.draw(gl!, selectionShader, camera);
-                for (var i = 0; i < m; i++) {
-                    if (viewShader != null)
-                        modelArr[i].draw(gl!, selectionShader, camera);
-                }
-
-                var pixels = new Uint8Array(4)
-                gl?.readPixels(_mouse.x, _mouse.y, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
-
-                var id = rgba_to_id(gl!, pixels[0], pixels[1], pixels[2], pixels[3]);
-                console.log(id);
-                var dest: number, dest2: number;
-                var direction: vec3|null = null, direction2: vec3|null = null;
-
-                for (var i = 0; i < modelArr.length; i++) {
-                    if (id == i + 2) {
-                        catcher = modelArr[i];
-                        catcher.color = vec4.fromValues(0.5, 0.5, 0.5, 1);
-                        
-                        // Generating destination for catcher
-                        dest = generateDest(m, id, emptyVertices)-2;
-                        arrow1! = new Arrow(gl!, 'static/models/new_arrow.obj', 100);
-                        arrow1!.color = vec4.fromValues(1, 0.0, 0.0, 1);
-                        // console.log("catcher", catcher.id-2, "destination", dest);
-                        direction! = vec3.fromValues(polygonVertices[3*dest] - polygonVertices[3*(catcher.id-2)], polygonVertices[3*dest + 1] - polygonVertices[3*(catcher.id-2)+1], polygonVertices[3*dest+2] - polygonVertices[3*(catcher.id-2)+2]);
-                        arrow1!.setDirection(direction![0], direction![1]);
-                        arrow1!.setPosition(polygonVertices[3*(catcher.id-2)], polygonVertices[3*(catcher.id-2)+1], polygonVertices[3*(catcher.id-2)+2]);
-
-                        // Generating new position for destination
-                        dest2 = generateEmptyDest(emptyVertices) - 2; // generateDest(m, dest+2)-2;
-                        arrow2! = new Arrow(gl!, 'static/models/new_arrow.obj', 100);
-                        arrow2!.color = vec4.fromValues(1, 0.0, 0.0, 1);
-                        direction2! = vec3.fromValues(polygonVertices[3*dest2] - polygonVertices[3*(dest)], polygonVertices[3*dest2 + 1] - polygonVertices[3*(dest)+1], polygonVertices[3*dest2+2] - polygonVertices[3*(dest)+2]);
-                        arrow2!.setDirection(direction2![0], direction2![1]);
-                        arrow2!.setPosition(polygonVertices[3*(dest)], polygonVertices[3*(dest)+1], polygonVertices[3*(dest)+2]);
-
-                        var index = emptyVertices.indexOf(dest2+2);
-                        emptyVertices[index] = catcher.id;
-                        console.log(emptyVertices);
-                    }
-                }
-
-                canvas.addEventListener("mouseup", (evt3) => {
-                    isDown=false;
-                })
-
-                canvas.addEventListener("mousemove", (evt2) => {
-                    if(isDown)
-                    {
-                        var _newmouse = getMousePos(canvas, evt2);
-                        var x = _newmouse.x - _mouse.x;
-                        var y = _newmouse.y - _mouse.y;
-                        var distance = (Math.sqrt(x*x + y*y))/500;
-                        // console.log(polygonVertices[3*(catcher!.id-2)] + direction[0]*distance, polygonVertices[3*(catcher!.id-2)+1] + direction[1]*distance);
-                        arrow1!.setPosition(polygonVertices[3*(catcher!.id-2)] + direction![0]*distance, polygonVertices[3*(catcher!.id-2)+1] + direction![1]*distance, 0);
-                        modelArr[catcher!.id-2].purgeTranslation();
-                        modelArr[catcher!.id-2].addTranslation(polygonVertices[3*(catcher!.id-2)] + direction![0]*distance, polygonVertices[3*(catcher!.id-2)+1] + direction![1]*distance, 0);
-                        
-                        arrow2!.setPosition(polygonVertices[3*(dest)] + direction2![0]*distance, polygonVertices[3*(dest)+1] + direction2![1]*distance, 0);
-                        modelArr[dest].purgeTranslation();
-                        modelArr[dest].addTranslation(polygonVertices[3*(dest)] + direction2![0]*distance, polygonVertices[3*(dest)+1] + direction2![1]*distance, 0);
-                        // console.log(polygonVertices[3*(catcher!.id-2)] + direction[0]*distance - polygonVertices[3*dest]);
-                        if((polygonVertices[3*(catcher!.id-2)] + direction![0]*distance - polygonVertices[3*dest] < 0.01) && (polygonVertices[3*(catcher!.id-2)] + direction![0]*distance - polygonVertices[3*dest] >= -0.01)
-                            && (polygonVertices[3*(catcher!.id-2)+1] + direction![1]*distance - polygonVertices[3*dest + 1] < 0.01) && (polygonVertices[3*(catcher!.id-2)+1] + direction![1]*distance - polygonVertices[3*dest + 1] >= -0.01))
-                            {
-                                catcher!.color = vec4.fromValues(Math.random(),Math.random(),Math.random(),1);
-                                
-                                isDown = false;
-                                arrow1 = null;
-                                arrow2 = null;
-                                direction = null;
-                                direction2 = null;
-                                catcher = null;
-                                dest = -1;
-                                dest2 = -1;
-                                
-                            }
-                    }
-                })
-
-                plane1.draw(gl!, viewShader!, camera);
+            if(isCentered) {
+                initialMousePosition = vec2.fromValues(_mouse.x , _mouse.y)
             }
-        }
-    })    
+            else {
+                var _mouse = getMousePos(canvas, evt);
+                isDown = true;
+                // reading from the color buffer i.e. reading the id
+                if (selectionShader != null && catcher == null) {
+                    plane1.draw(gl!, selectionShader, camera);
+                    for (var i = 0; i < m; i++) {
+                        if (viewShader != null)
+                            modelArr[i].draw(gl!, selectionShader, camera);
+                    }
+
+                    var pixels = new Uint8Array(4)
+                    gl?.readPixels(_mouse.x, _mouse.y, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
+
+                    var id = rgba_to_id(gl!, pixels[0], pixels[1], pixels[2], pixels[3]);
+                    console.log(id);
+                    var dest: number, dest2: number;
+                    var direction: vec3|null = null, direction2: vec3|null = null;
+
+                    for (var i = 0; i < modelArr.length; i++) {
+                        if (id == i + 2) {
+                            catcher = modelArr[i];
+                            catcher.color = vec4.fromValues(0.5, 0.5, 0.5, 1);
+                            
+                            // Generating destination for catcher
+                            dest = generateDest(m, id, emptyVertices)-2;
+                            arrow1! = new Arrow(gl!, 'static/models/new_arrow.obj', 100);
+                            arrow1!.color = vec4.fromValues(1, 0.0, 0.0, 1);
+                            // console.log("catcher", catcher.id-2, "destination", dest);
+                            direction! = vec3.fromValues(polygonVertices[3*dest] - polygonVertices[3*(catcher.id-2)], polygonVertices[3*dest + 1] - polygonVertices[3*(catcher.id-2)+1], polygonVertices[3*dest+2] - polygonVertices[3*(catcher.id-2)+2]);
+                            arrow1!.setDirection(direction![0], direction![1]);
+                            arrow1!.setPosition(polygonVertices[3*(catcher.id-2)], polygonVertices[3*(catcher.id-2)+1], polygonVertices[3*(catcher.id-2)+2]);
+
+                            // Generating new position for destination
+                            dest2 = generateEmptyDest(emptyVertices) - 2; // generateDest(m, dest+2)-2;
+                            arrow2! = new Arrow(gl!, 'static/models/new_arrow.obj', 100);
+                            arrow2!.color = vec4.fromValues(1, 0.0, 0.0, 1);
+                            direction2! = vec3.fromValues(polygonVertices[3*dest2] - polygonVertices[3*(dest)], polygonVertices[3*dest2 + 1] - polygonVertices[3*(dest)+1], polygonVertices[3*dest2+2] - polygonVertices[3*(dest)+2]);
+                            arrow2!.setDirection(direction2![0], direction2![1]);
+                            arrow2!.setPosition(polygonVertices[3*(dest)], polygonVertices[3*(dest)+1], polygonVertices[3*(dest)+2]);
+
+                            var index = emptyVertices.indexOf(dest2+2);
+                            emptyVertices[index] = catcher.id;
+                            console.log(emptyVertices);
+                        }
+                    }
+
+                    canvas.addEventListener("mouseup", (evt3) => {
+                        isDown=false;
+                    })
+
+                    canvas.addEventListener("mousemove", (evt2) => {
+                        if(isDown)
+                        {
+                            var _newmouse = getMousePos(canvas, evt2);
+                            var x = _newmouse.x - _mouse.x;
+                            var y = _newmouse.y - _mouse.y;
+                            var distance = (Math.sqrt(x*x + y*y))/500;
+                            // console.log(polygonVertices[3*(catcher!.id-2)] + direction[0]*distance, polygonVertices[3*(catcher!.id-2)+1] + direction[1]*distance);
+                            arrow1!.setPosition(polygonVertices[3*(catcher!.id-2)] + direction![0]*distance, polygonVertices[3*(catcher!.id-2)+1] + direction![1]*distance, 0);
+                            modelArr[catcher!.id-2].purgeTranslation();
+                            modelArr[catcher!.id-2].addTranslation(polygonVertices[3*(catcher!.id-2)] + direction![0]*distance, polygonVertices[3*(catcher!.id-2)+1] + direction![1]*distance, 0);
+                            
+                            arrow2!.setPosition(polygonVertices[3*(dest)] + direction2![0]*distance, polygonVertices[3*(dest)+1] + direction2![1]*distance, 0);
+                            modelArr[dest].purgeTranslation();
+                            modelArr[dest].addTranslation(polygonVertices[3*(dest)] + direction2![0]*distance, polygonVertices[3*(dest)+1] + direction2![1]*distance, 0);
+                            // console.log(polygonVertices[3*(catcher!.id-2)] + direction[0]*distance - polygonVertices[3*dest]);
+                            if((polygonVertices[3*(catcher!.id-2)] + direction![0]*distance - polygonVertices[3*dest] < 0.01) && (polygonVertices[3*(catcher!.id-2)] + direction![0]*distance - polygonVertices[3*dest] >= -0.01)
+                                && (polygonVertices[3*(catcher!.id-2)+1] + direction![1]*distance - polygonVertices[3*dest + 1] < 0.01) && (polygonVertices[3*(catcher!.id-2)+1] + direction![1]*distance - polygonVertices[3*dest + 1] >= -0.01))
+                                {
+                                    catcher!.color = vec4.fromValues(Math.random(),Math.random(),Math.random(),1);
+                                    
+                                    isDown = false;
+                                    arrow1 = null;
+                                    arrow2 = null;
+                                    direction = null;
+                                    direction2 = null;
+                                    catcher = null;
+                                    dest = -1;
+                                    dest2 = -1;
+                                    
+                                }
+                        }
+                    })
+
+                    plane1.draw(gl!, viewShader!, camera);
+                }
+            }
+        })    
+    }
 
     canvas.addEventListener('mouseup', (evt) => {
         var _mouse = getMousePos(canvas, evt);
